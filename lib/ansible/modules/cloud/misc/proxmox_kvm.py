@@ -766,8 +766,8 @@ def get_vminfo(module, proxmox, node, vmid, **kwargs):
             device = k
             k = vm[k]
             k = re.search('(.*?),', k).group(1)
-            devices[device] = k
-
+            devices[device] = k # nothing information when we clone machine, why?
+          
     results['mac'] = mac
     results['devices'] = devices
     results['vmid'] = int(vmid)
@@ -1144,7 +1144,13 @@ def main():
             if update:
                 module.exit_json(changed=True, msg="VM %s with vmid %s updated" % (name, vmid))
             elif clone is not None:
-                module.exit_json(changed=True, msg="VM %s with newid %s cloned from vm with vmid %s" % (name, newid, vmid))
+                get_vminfo(module, proxmox, node, newid,
+                           ide=module.params['ide'],
+                           net=module.params['net'],
+                           sata=module.params['sata'],
+                           scsi=module.params['scsi'],
+                           virtio=module.params['virtio'])
+                module.exit_json(changed=True, msg="VM %s with newid %s cloned from vm with vmid %s" % (name, newid, vmid), **results)
             else:
                 module.exit_json(changed=True, msg="VM %s with vmid %s deployed" % (name, vmid), **results)
         except Exception as e:
